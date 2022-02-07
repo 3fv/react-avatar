@@ -4,7 +4,7 @@ const CompressionPlugin = require("compression-webpack-plugin");
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
 module.exports = {
-  entry: './src/avatar.jsx',
+  entry: './src/avatar.tsx',
   mode: 'production',
   output: {
     path: path.resolve('lib'),
@@ -21,6 +21,10 @@ module.exports = {
       }, {
         loader: 'babel-loader',
         test: /\.jsx$/,
+        exclude: /node_modules/
+      }, {
+        loader: 'ts-loader',
+        test: /\.tsx?$/,
         exclude: /node_modules/
       },
     ],

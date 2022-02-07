@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import Avatar from '../src/avatar.jsx'
+import Avatar from '../src/avatar.tsx'
 
 class App extends React.Component {
 
@@ -17,6 +17,7 @@ class App extends React.Component {
     this.onClose = this.onClose.bind(this)
     this.onCloseDefault = this.onCloseDefault.bind(this)
     this.onLoadNewImage = this.onLoadNewImage.bind(this)
+    this.onFileLoad = this.onFileLoad.bind(this)
   }
 
   onCropDefault(preview) {
@@ -38,6 +39,10 @@ class App extends React.Component {
   onLoadNewImage() {
     const src = SOURCE_PATH + '/einshtein2.jpeg'
     this.setState({src})
+  }
+  
+  onFileLoad(...args) {
+    console.info(`onFileLoad`, ...args)
   }
 
   render() {
@@ -67,6 +72,7 @@ class App extends React.Component {
               exportSize={390}
               onCrop={this.onCropDefault}
               onClose={this.onCloseDefault}
+              onFileLoad={this.onFileLoad}
             />
           </div>
           <div className="col-2">
@@ -91,6 +97,7 @@ class App extends React.Component {
               cropRadius={50}
               onCrop={this.onCrop}
               onClose={this.onClose}
+              onFileLoad={this.onFileLoad}
               src={this.state.src}
             />
             <div  style={{paddingTop: 20}}>

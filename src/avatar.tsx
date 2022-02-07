@@ -1,7 +1,7 @@
-import React from 'react'
-import Konva from 'konva/src/Core'
-import EXIF from 'exif-js'
-import LoadImage from 'blueimp-load-image'
+import React, { CSSProperties } from "react"
+import Konva from "konva"
+import EXIF from "exif-js"
+import LoadImage from "blueimp-load-image"
 import 'konva/src/shapes/Image'
 import 'konva/src/shapes/Circle'
 import 'konva/src/shapes/Rect'
@@ -9,48 +9,60 @@ import 'konva/src/shapes/Path'
 import 'konva/src/Animation'
 import 'konva/src/DragAndDrop'
 
-class Avatar extends React.Component {
+type AnyFn = (...args: any[]) => any
 
-  static defaultProps = {
-    shadingColor: 'grey',
-    shadingOpacity: 0.6,
-    cropColor: 'white',
-    closeIconColor: 'white',
-    lineWidth: 4,
-    minCropRadius: 30,
-    backgroundColor: 'grey',
-    mimeTypes: 'image/jpeg,image/png',
-    exportAsSquare: false,
-    exportSize: undefined,
-    exportMimeType: 'image/png',
-    exportQuality: 1.0,
-    mobileScaleSpeed: 0.5, // experimental
-    onClose: () => {
-    },
-    onCrop: () => {
-    },
-    onFileLoad: () => {
-    },
-    onImageLoad: () => {
-    },
-    onBeforeFileLoad: () => {
-    },
-    label: 'Choose a file',
-    labelStyle: {
-      fontSize: '1.25em',
-      fontWeight: '700',
-      color: 'black',
-      display: 'inline-block',
-      fontFamily: 'sans-serif',
-      cursor: 'pointer'
-    },
-    borderStyle: {
-      border: '2px solid #979797',
-      borderStyle: 'dashed',
-      borderRadius: '8px',
-      textAlign: 'center'
-    }
-  };
+export interface AvatarEditorProps {
+  shadingColor?: string
+  shadingOpacity?:number
+  cropColor?: string
+  closeIconColor?: string
+  lineWidth?: number
+  
+  cropRadius?: number
+  minCropRadius?: number
+  backgroundColor?: string
+  mimeTypes?: string
+  exportAsSquare?:boolean
+  img?: HTMLImageElement
+  
+  imageWidth?: number
+  imageHeight?: number
+  
+  width?: number
+  height?: number
+  exportSize?:number
+  exportMimeType?: string
+  exportQuality?:number
+  mobileScaleSpeed?:number // experimental
+  src?: string
+  onClose?: AnyFn
+  onCrop?: AnyFn
+  onFileLoad?: AnyFn
+  onImageLoad?: AnyFn
+  onBeforeFileLoad?: AnyFn
+  label?: string
+  labelStyle?: React.CSSProperties
+  borderStyle?: React.CSSProperties
+}
+
+export interface AvatarEditorState {
+  image?: HTMLImageElement
+  file?: File
+  cropRadius?: number
+  imgWidth: number
+  imgHeight: number
+  scale: number
+  containerId: any
+  loaderId: any
+  lastMouseY: number
+  showLoader: boolean
+
+}
+
+
+class Avatar extends React.Component<AvatarEditorProps, AvatarEditorState> {
+
+  
 
   constructor(props) {
     super(props);
@@ -272,19 +284,19 @@ class Avatar extends React.Component {
     stage.add(layer);
 
     const scaledRadius = (scale = 0) => crop.radius() - scale;
-    const isLeftCorner = scale => crop.x() - scaledRadius(scale) < 0;
+    const isLeftCorner = (scale?:number) => crop.x() - scaledRadius(scale) < 0;
     const calcLeft = () => crop.radius() + 1;
-    const isTopCorner = scale => crop.y() - scaledRadius(scale) < 0;
+    const isTopCorner = (scale?:number) => crop.y() - scaledRadius(scale) < 0;
     const calcTop = () => crop.radius() + 1;
-    const isRightCorner = scale => crop.x() + scaledRadius(scale) > stage.width();
+    const isRightCorner = (scale?:number) => crop.x() + scaledRadius(scale) > stage.width();
     const calcRight = () => stage.width() - crop.radius() - 1;
-    const isBottomCorner = scale => crop.y() + scaledRadius(scale) > stage.height();
+    const isBottomCorner = (scale?:number) => crop.y() + scaledRadius(scale) > stage.height();
     const calcBottom = () => stage.height() - crop.radius() - 1;
-    const isNotOutOfScale = scale => !isLeftCorner(scale) && !isRightCorner(scale) && !isBottomCorner(scale) && !isTopCorner(scale);
-    const calcScaleRadius = scale => scaledRadius(scale) >= this.minCropRadius ? scale : crop.radius() - this.minCropRadius;
-    const calcResizerX = x => x + (crop.radius() * 0.86);
-    const calcResizerY = y => y - (crop.radius() * 0.5);
-    const moveResizer = (x, y) => {
+    const isNotOutOfScale = (scale?:number) => !isLeftCorner(scale) && !isRightCorner(scale) && !isBottomCorner(scale) && !isTopCorner(scale);
+    const calcScaleRadius = (scale?:number) => scaledRadius(scale) >= this.minCropRadius ? scale : crop.radius() - this.minCropRadius;
+    const calcResizerX = (x?:number) => x + (crop.radius() * 0.86);
+    const calcResizerY = (y?:number) => y - (crop.radius() * 0.5);
+    const moveResizer = (x:number, y:number) => {
       resize.x(calcResizerX(x) - 8);
       resize.y(calcResizerY(y) - 8);
       resizeIcon.x(calcResizerX(x) - 8);
@@ -343,7 +355,7 @@ class Avatar extends React.Component {
       const x = isLeftCorner() ? calcLeft() : (isRightCorner() ? calcRight() : crop.x());
       const y = isTopCorner() ? calcTop() : (isBottomCorner() ? calcBottom() : crop.y());
       moveResizer(x, y);
-      crop.setFillPatternOffset({ x: x / this.scale, y: y / this.scale });
+      crop.fillPatternOffset({ x: x / this.scale, y: y / this.scale });
       crop.x(x);
       cropStroke.x(x);
       crop.y(y);
@@ -357,9 +369,14 @@ class Avatar extends React.Component {
 
     resize.on("touchstart", (evt) => {
       resize.on("dragmove", (dragEvt) => {
-        if (dragEvt.evt.type !== 'touchmove') return;
-        const scaleY = (dragEvt.evt.changedTouches['0'].pageY - evt.evt.changedTouches['0'].pageY) || 0;
-        onScaleCallback(scaleY * this.mobileScaleSpeed)
+        
+        if (dragEvt.evt.type === "touchmove") {
+          const touchEvent = dragEvt.evt as unknown as TouchEvent
+          const scaleY = (touchEvent.changedTouches['0'].pageY - evt.evt.changedTouches['0'].pageY) || 0;
+          onScaleCallback(scaleY * this.mobileScaleSpeed)
+        }
+        // if (dragEvt.evt.type !== 'touchmove') return;
+        
       })
     });
 
@@ -484,7 +501,7 @@ class Avatar extends React.Component {
   render() {
     const { width, height } = this.props;
 
-    const style = {
+    const style: CSSProperties = {
       display: 'flex',
       justifyContent: 'center',
       backgroundColor: this.backgroundColor,
@@ -492,7 +509,7 @@ class Avatar extends React.Component {
       position: 'relative'
     };
 
-    const inputStyle = {
+    const inputStyle: CSSProperties = {
       width: 0.1,
       height: 0.1,
       opacity: 0,
@@ -512,7 +529,7 @@ class Avatar extends React.Component {
       }
     };
 
-    const closeBtnStyle = {
+    const closeBtnStyle: CSSProperties = {
       position: 'absolute',
       zIndex: 999,
       cursor: 'pointer',
@@ -557,4 +574,44 @@ class Avatar extends React.Component {
   }
 }
 
+;(Avatar as any).defaultProps = {
+  shadingColor: 'grey',
+  shadingOpacity: 0.6,
+  cropColor: 'white',
+  closeIconColor: 'white',
+  lineWidth: 4,
+  minCropRadius: 30,
+  backgroundColor: 'grey',
+  mimeTypes: 'image/jpeg,image/png',
+  exportAsSquare: false,
+  exportSize: undefined,
+  exportMimeType: 'image/png',
+  exportQuality: 1.0,
+  mobileScaleSpeed: 0.5, // experimental
+  onClose: () => {
+  },
+  onCrop: () => {
+  },
+  onFileLoad: () => {
+  },
+  onImageLoad: () => {
+  },
+  onBeforeFileLoad: () => {
+  },
+  label: 'Choose a file',
+  labelStyle: {
+    fontSize: '1.25em',
+    fontWeight: '700',
+    color: 'black',
+    display: 'inline-block',
+    fontFamily: 'sans-serif',
+    cursor: 'pointer'
+  },
+  borderStyle: {
+    border: '2px solid #979797',
+    borderStyle: 'dashed',
+    borderRadius: '8px',
+    textAlign: 'center'
+  }
+};
 export default Avatar

@@ -1,0 +1,58 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "lib": [
+      "dom",
+      "es2015",
+      "es2016",
+      "es2017",
+      "es2018",
+      "es2019",
+      "es2019.array",
+      "es2020",
+      "esnext"
+    ],
+    "disableSolutionSearching": true,
+    "extendedDiagnostics": false,
+    "importHelpers": false,
+    "noErrorTruncation": true,
+    "jsx": "react",
+    "allowJs": false,
+    "downlevelIteration": true,
+    "module": "ESNext",
+    "composite": true,
+    "incremental": true,
+    "skipDefaultLibCheck": true,
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": false,
+    "disableSizeLimit": false,
+    "preserveConstEnums": true,
+    "resolveJsonModule": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "inlineSourceMap": false,
+    "inlineSources": false,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "target": "ES2019",
+    "outDir": "./lib",
+    "baseUrl": "./",
+    "rootDir": "./src"
+    
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "lib",
+    "dist",
+    "node_modules",
+    "docs"
+  ]
+}
